@@ -1,118 +1,100 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useState, useEffect} from 'react';
+import SplashScreen from './src/screens/SplashScreen';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
+import TermsAndConditions from './src/screens/TermsAndConditions';
+import {StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {allImages} from './src/assets';
+import ForgotPassword from './src/screens/ForgotPassword';
+import {Provider} from 'react-redux';
+import store from './src/redux/Store';
+import OtpVerification from './src/components/OtpVerification';
+const Stack = createNativeStackNavigator();
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+interface AppState {
+  isSplashScreen: boolean;
 }
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+const initialState: AppState = {
+  isSplashScreen: true,
+};
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+const App = () => {
+  const [state, setState] = useState<AppState>(initialState);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setState(prevState => ({
+        ...prevState,
+        isSplashScreen: false,
+      }));
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <Provider store={store}>
+      <NavigationContainer>
+        {state.isSplashScreen ? (
+          <SplashScreen />
+        ) : (
+          <Stack.Navigator initialRouteName="LOGIN">
+            <Stack.Screen
+              name="LOGIN"
+              component={LoginScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="REGISTER"
+              component={RegisterScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="TERMSANDCONDITIONS"
+              component={TermsAndConditions}
+              options={({navigation}) => ({
+                headerShown: true,
+                title: 'Terms & Conditions',
+                headerTitleAlign: 'center',
+                headerShadowVisible: false,
+                headerStyle: {
+                  backgroundColor: '#eaeef3',
+                },
+                headerTitleStyle: {
+                  fontSize: 18,
+                  fontWeight: '500',
+                },
+                headerLeft: () => (
+                  <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Image
+                      source={allImages.backArrowIcon}
+                      style={styles.backIcon}
+                    />
+                  </TouchableOpacity>
+                ),
+              })}
+            />
+            <Stack.Screen name="FORGOTPASSWORD" options={{headerShown: false}}>
+              {props => <ForgotPassword {...props} />}
+            </Stack.Screen>
+            <Stack.Screen name="verify-otp">
+              {props => <OtpVerification {...props} />}
+            </Stack.Screen>
+          </Stack.Navigator>
+        )}
+      </NavigationContainer>
+    </Provider>
   );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+};
 
 export default App;
+
+const styles = StyleSheet.create({
+  backIcon: {
+    width: 24,
+    height: 24,
+  },
+});
